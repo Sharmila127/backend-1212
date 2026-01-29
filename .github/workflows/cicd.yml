@@ -34,6 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm install --legacy-peer-deps --force
+      
       # Step 6: Build project 
       - name: Deploy on EC2 using SSH
       uses: appleboy/ssh-action@v1.0.3
@@ -56,4 +57,4 @@ jobs:
           
           docker compose up -d --build
 
-      #
+    
