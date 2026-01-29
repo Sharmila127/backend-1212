@@ -34,11 +34,13 @@ jobs:
       - name: Install dependencies
         run: |
           npm install --legacy-peer-deps --force
-      # Step 6: Build project (ignore TS errors)
-      - name: Build project
-        run: |
-          npx tsc --skipLibCheck || echo "Ignoring TS errors"
-          npx vite build
+      # Step 6: Build project 
+      - name: Deploy on EC2 using SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_KEY }}
 
           script: |
           echo "Connected to EC2"
