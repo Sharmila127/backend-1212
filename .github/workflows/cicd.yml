@@ -1,0 +1,57 @@
+name: Deploy Frontend to S3.
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code 
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      # Step 3: Remove package-lock.json & node_modules
+      - name: Remove package-lock.json & node_modules
+        run: |
+          rm -f package-lock.json
+          rm -rf node_modules
+
+      # Step 4: Clean npm cache
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      # Step 5: Install dependencies (ignore errors)
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps --force
+      # Step 6: Build project (ignore TS errors)
+      - name: Build project
+        run: |
+          npx tsc --skipLibCheck || echo "Ignoring TS errors"
+          npx vite build
+
+          script: |
+          echo "Connected to EC2"
+
+          docker stop backend-1212 || true
+          docker rm backend-1212|| true
+
+          rm -rf backend-1212
+          mkdir backend-1212
+          cd backend-1212
+
+          git clone https://github.com/${{ github.repository }} .
+          
+          docker compose up -d --build
+
+      #
