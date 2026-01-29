@@ -1,4 +1,4 @@
-name: Deploy Frontend to S3.
+name: Deploy Frontend to S3
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code 
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -30,31 +30,27 @@ jobs:
       - name: Clean npm cache
         run: npm cache clean --force
 
-      # Step 5: Install dependencies (ignore errors)
+      # Step 5: Install dependencies
       - name: Install dependencies
-        run: |
-          npm install --legacy-peer-deps --force
-      
-      # Step 6: Build project 
+        run: npm install --legacy-peer-deps --force
+
+      # Step 6: Deploy on EC2 using SSH
       - name: Deploy on EC2 using SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_KEY }}
-
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
           script: |
-          echo "Connected to EC2"
+            echo "Connected to EC2"
 
-          docker stop backend-1212 || true
-          docker rm backend-1212|| true
+            docker stop backend-1212 || true
+            docker rm backend-1212 || true
 
-          rm -rf backend-1212
-          mkdir backend-1212
-          cd backend-1212
+            rm -rf backend-1212
+            mkdir backend-1212
+            cd backend-1212
 
-          git clone https://github.com/${{ github.repository }} .
-          
-          docker compose up -d --build
+            git clone https://github.com/${{ github.repository }} .
 
-    
+            docker compose up -d --build
