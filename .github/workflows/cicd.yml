@@ -1,4 +1,4 @@
-name: Deploy Frontend to S3
+name: Deploy App to EC2
 
 on:
   push:
@@ -10,39 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      # Step 3: Remove package-lock.json & node_modules
-      - name: Remove package-lock.json & node_modules
-        run: |
-          rm -f package-lock.json
-          rm -rf node_modules
-
-      # Step 4: Clean npm cache
-      - name: Clean npm cache
-        run: npm cache clean --force
-
-      # Step 5: Install dependencies
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps 
-
-      # Step 6: Deploy on EC2 using SSH
       - name: Deploy on EC2 using SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
+          port: 22
+          timeout: 60s
+          command_timeout: 20m
+          script_stop: true
+          debug: true
           script: |
             echo "Connected to EC2"
+
+            cd /home/ubuntu || exit 1
 
             docker stop backend-1212 || true
             docker rm backend-1212 || true
@@ -53,4 +38,5 @@ jobs:
 
             git clone https://github.com/${{ github.repository }} .
 
+            docker compose down || true
             docker compose up -d --build
